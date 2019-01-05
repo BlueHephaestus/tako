@@ -1,0 +1,113 @@
+Tool for Assistive Classification On-Dataset - TAKO (or TACO)
+
+Uses the same method of converting images to .npy counterparts
+Saves progress, no user ids though.
+Allows variable amount of classifications as long as there is at least one,
+  comes equipped by default with a "Nothing" classification, which means
+  the selected section does not have anything we need to save.
+  All images will first be initialized to this, so that if we were to
+  save immediately, we would not save any predictions. Index-wise,
+  this is classification 0 - the null classification, ones
+  we don't care about and won't have any selection indicators for.
+  When removing classifications, this is what is left over.
+
+Uses Kivy for GUI, this looks better overrall than Tkinter
+Command line arguments will be
+  input directory
+  output file (one file)
+  label text file - infer number and labels of classifications from this
+    of format
+    """
+    label 1
+    label 2
+    ...
+    label n
+    """
+    Must be at least 1 classification here, otherwise we won't be gathering any data.
+    Display a warning, not an error, if this is not true.
+
+  win height
+  win width
+    infers if it should divide images into subsections via the area of each image
+  reset - optional, defaults to not resetting. But if "reset" is given, it will start over from nothing.
+    Gives an are you sure prompt before proceeding
+
+Creates the key from the label file, and adds that in a semitransparent separate window 
+  Supports up to 10 classifications, each of which is given a key from a list such that the keys have large entropy
+Constantly saves progress, only lag in execution is when loading images, dividing them into subsections if needed,
+  and saving them as npy files, i.e. the initial loading stage
+
+  As a result, if the user wishes to quit at any time, they'll already have their classifications in their output file.
+
+So how does it do this autosave/autoload in realtime during runtime?
+  Unfortunately we can't always save super fast, since we may save something from 0, then 1, then back to 0.
+  So we would need to be inserting at where that image's classifications belonged.
+
+The way that seems easiest is to have each image's classifications be separate from other images,
+  however if we did this, like in a dictionary, we'd have a problem because then we aren't implicitly
+  saving the data in a very simple format.
+
+And doing it in a format that does satisfy that problem would then just require more computation and complexity.
+
+Perhaps we save everything to program files on a per image basis, then whenever we see that execution of the 
+  GUI session ends or is interrupted, we combine the samples into one main file.
+  That seems the best way to win both battles.
+
+The output file is a .npy file containing:
+  (X,Y,I)
+  Such that for a window shape wh, ww and with n samples selected, these are formatted as follows:
+    X: (n, wh, ww) - List of window inputs
+    Y: (n,) - List of the classifications of those inputs
+    I: (n, 3) - List of (i, j) indicating the row and column index 
+      relative to wh and ww.
+
+  npy files don't work that way, they don't have tuples.
+  So it'd need to be _X.npy, _Y.npy, _I.npy
+
+Each individual image .npy file is also of this same format.
+  When we add images, we do have a problemo. Numpy arrays are fixed size, 
+  And it takes longer to append and insert with np than with just normal python.
+
+  But it also takes longer to store this data with python than numpy. So it really depends on what constants
+    are a part of that proportional ratio, and how much the user changes things. 
+
+  So for now, we're just gonna go with numpy.
+  We're also just going to append instead of insert, to make things simpler since in all likelihood the efficiency gain
+    would be minimal.
+
+Later on we definitely need to add a lasso select tool, for selecting arbitrarily shaped regions. We will just round down into
+  the region selected and approximate with the window shape.
+
+we display the key in a separate floating window, transparent if we can
+
+Class Hierarchy
+  Session
+    GUI
+    Dataset
+      Images
+      Classifications
+      Labels
+
+
+Images
+  We have to svae as index files so we always know what image index each classification belongs to.
+  We don't really need to map them back, nor does it really matter what their original name was.
+
+dataset.classifications[i]
+
+GUI
+  Reactively changes its size based on the given image
+  Scrollbars present, also allows movement via right click
+  Active zoom would be fucking awesome
+  Switching between lasso and rectangle select via the toolbox, a thin extra toolbox like in GIMP
+  Switching between the fill type / label type via the toolbox as well.
+  All tools in the toolbox have their own keyboard shortcuts listed but also function as buttons.
+
+  Display some stats, such as the window height, window width, and label number in the toolbar
+
+
+We may also be able to do something like a pen tool, where they fill in the rectangles with a color like it's painting
+
+We also should have a slider for transparency that live updates
+
+We also should have a zoom slider + shortcut
