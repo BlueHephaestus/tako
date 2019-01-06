@@ -41,48 +41,28 @@ class Canvas(QWidget):
         self.setWindowTitle("| Canvas |")
         self.setGeometry(self.x,self.y,self.w,self.h)
 
-        #Load Image
-        self.pixmap = QPixmap('yang.png')
-        #self.pixmap.fill(QColor("transparent"))
-        #Create Label, add Image to Label
-        """
-        self.label = QLabel(self)
-        self.label.setPixmap(self.pixmap)
-
-        #Create ScrollArea, add Label to ScrollArea
-        self.scroll = QScrollArea()
-        self.scroll.setWidget(self.label)
-        #scroll.setWidget(self.overlay)
-
-        """
-        #Create Layout, add ScrollArea to Layout
-        self.layout = QVBoxLayout(self)
-        #self.layout.addWidget(self.scroll)
-
-        """
-        self.canvas = QWidget(parent=self)
-        self.canvas.move(0,0)
-        self.canvas.resize(self.w, self.h)
-        #self.canvas.setWindowFlags(Qt.FramelessWindowHint)
-        #self.canvas.setAttribute(Qt.WA_TranslucentBackground)
-        self.layout.addWidget(self.canvas)
-        """
-
+        #Create GraphicsScene and GraphicsView of it
         self.scene = QGraphicsScene()
         self.view = QGraphicsView(self.scene)
+        self.view.viewport().installEventFilter(self)
+
+        #Add view to the layout
+        self.layout = QGridLayout(self)
         self.layout.addWidget(self.view)
 
+        #Load and add the current pixmap
+        self.pixmap = QPixmap('yang.png')
         self.scene.addPixmap(self.pixmap)
 
-        #Create Overlay
-        #self.overlay = Overlay(self, self.dataset, self.height(), self.width(), self.win_h, self.win_w)
-
         #Modifiable attributes to determine what's being drawn
-        self.rects = QGraphicsItemGroup()
-        self.rect = QRect(0,0,0,0)
+        #self.selection = QGraphicsRectItem(QRectF(0,0,0,0))
+        #self.scene.addItem(self.selection)
 
-        #For now it's just one color
-        self.color = SELECTION_RECT_FILL_COLOR
+        self.color = SELECTION_RECT_FILL_COLOR #For now it's just one color
+
+        #Current tool being used to make selections in our image
+        #self.tool = RECT_SELECT
+        self.tool = LASSO_SELECT
 
         #Drawing Attributes for the Canvas
         self.painter = QPainter()
@@ -90,112 +70,104 @@ class Canvas(QWidget):
         #Show our widget
         self.show()
 
+    def render_selection(self, selection, polygon=False):
         """
-        def paintEvent(self, event):
-        print(event.type())
-        self.scene.clear()
-        self.scene.addRect(QRectF(QRect(400,400,1000,1000)), brush=self.color)
-        print("asdf")
-        """
-        """
-        #Paint the given active shape
-        self.painter.begin(self.canvas)
-
-        self.painter.fillRect(QRect(0,0,500,500), self.color)
-
-        self.painter.setPen(self.color)
-        self.painter.setBrush(self.color)
-        self.painter.drawRect(self.rect)
-        self.painter.fillRect(self.rect, self.color)
-        #self.label.setPixmap(self.pixmap)
-
-        self.painter.end()
+        Updates the current displayed selection shape
+            on the canvas to be the given selection.
         """
 
-    def mousePressEvent(self, event):
+        #Always remove anything other than our pixmap when re-rendering
+        while len(self.scene.items()) > 1:
+            self.scene.removeItem(self.scene.items()[0])
 
-        #Initialize selection rectangle with this
-        self.select_start = QPoint(event.x(), event.y())
-        self.select_rect = QRect(QPoint(event.x(), event.y()), QPoint(event.x(), event.y()))
+        #Add new selection 
+        if polygon:
+            #They have a special method for this we have to use to add them
+            self.scene.addPolygon(selection)
 
-        #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
-        #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
-
-        #Get a rectangle outline with this rect/point as both top-left and bot-right of the rectangle and draw it
-        outline_rect = get_outline_rect(self.select_rect, self.win_h, self.win_w)
-        
-        self.rect = outline_rect
-        self.scene.addRect(QRectF(QRect(400,400,1000,1000)), brush=self.color)
-
-        #self.update()
-
-    def mouseMoveEvent(self, event):
-        #Update Selection Rectangle
-
-        #Get new rectangle from our initial select_rect point to this point
-        self.select_rect = get_rectangle_from_points(self.select_start, QPoint(event.x(), event.y()))
-
-        #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
-        #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
-        outline_rect = get_outline_rect(self.select_rect, self.win_h, self.win_w)
-
-        self.rect = outline_rect
-        self.update()
-
-        """
-        #Delete old selection rectangle and draw new one with this new rectangle outline
-        self.canvas.delete("selection")
-        self.canvas.create_rectangle(outline_rect_x1, outline_rect_y1, outline_rect_x2, outline_rect_y2, fill='', outline="darkRed", width=2, tags="selection")
-        """
-
-    def mouseReleaseEvent(self, event):
-        #Get new rectangle from our initial select_rect point to this point
-        self.select_rect = get_rectangle_from_points(self.select_start, QPoint(event.x(), event.y()))
-
-        #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
-        #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
-        outline_rect = get_outline_rect(self.select_rect, self.win_h, self.win_w)
-
-        self.rect = outline_rect
-        self.update()
-
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Q:
-            self.close()
-            sys.exit()
+        else:
+            self.scene.addItem(selection)
 
 
-class Overlay(QGraphicsView):
-    def __init__(self, parent, dataset, h, w, win_h, win_w):
-        super(Overlay, self).__init__(parent)
-        self.parent = parent
-        self.dataset = dataset
-        self.h = h
-        self.w = w
-        self.win_h = win_h
-        self.win_w = win_w
 
-        #Initialize as Translucent Background
-        self.setWindowFlags(Qt.FramelessWindowHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
+    def eventFilter(self, source, event):
+        if source is self.view.viewport():
 
-        #Initialize position and size
-        self.move(0,0)
-        self.resize(w, h)
+            #Selection events are dependent on the current selection tool
 
-        #Show this overlay now that we're ready
-        self.show()
+            #Users select a rectangle portion
+            if self.tool == RECT_SELECT:
 
-        #Drawing Attributes for the Canvas
-        self.painter = QPainter()
+                if (event.type() == QEvent.MouseButtonPress):
 
-        #Modifiable attributes to determine what's being drawn
-        self.rect = QRect(0,0,0,0)
+                    #Initialize selection rectangle with this
+                    self.select_start = QPoint(event.x(), event.y())
+                    self.select_rect = QRect(QPoint(event.x(), event.y()), QPoint(event.x(), event.y()))
 
-        #For now it's just one color
-        self.color = SELECTION_RECT_FILL_COLOR
+                    #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
+                    #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
+                    self.outline_rect = get_outline_rect(self.select_rect, self.win_h, self.win_w)
 
+                    #Render it
+                    self.render_selection(self.outline_rect)
 
+                elif (event.type() == QEvent.MouseMove):
+
+                    #Get new rectangle from our initial select_rect point to this point
+                    self.select_rect = get_rectangle_from_points(self.select_start, QPoint(event.x(), event.y()))
+
+                    #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
+                    #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
+                    self.outline_rect = get_outline_rect(self.select_rect, self.win_h, self.win_w)
+
+                    #Render it
+                    self.render_selection(self.outline_rect)
+
+                elif (event.type() == QEvent.MouseButtonRelease):
+                    #Get new rectangle from our initial select_rect point to this point
+                    self.select_rect = get_rectangle_from_points(self.select_start, QPoint(event.x(), event.y()))
+
+                    #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
+                    #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
+                    outline_rect = get_outline_rect(self.select_rect, self.win_h, self.win_w)
+
+                    #Render it
+                    self.render_selection(self.outline_rect)
+
+            #Users select an arbitrary region of the image which is then approximated by win_h x win_w windows
+            elif self.tool == LASSO_SELECT:
+                if (event.type() == QEvent.MouseButtonPress):
+
+                    #Initialize selection polygon with this
+                    self.select_start = QPoint(event.x(), event.y())
+                    self.select_polygon = QPolygonF([self.select_start])
+
+                    #Render it
+                    self.render_selection(self.select_polygon, polygon=True)
+
+                elif (event.type() == QEvent.MouseMove):
+
+                    #Append this new point to the polygon selection
+                    self.select_polygon.append(QPoint(event.x(), event.y()))
+
+                    #Render it
+                    self.render_selection(self.select_polygon, polygon=True)
+
+                elif (event.type() == QEvent.MouseButtonRelease):
+                    """
+                    Our polygon is now complete, we now approximate 
+                        the area encompassed by it with rectangles of 
+                        shape win_h x win_w and render these in its place.
+                    """
+                    self.select_rect_group = approximate_polygon(self.select_polygon, self.h, self.w, self.win_h, self.win_w)
+
+                    #Render the approximation
+                    self.render_selection(self.select_rect_group)
+
+                    
+                    
+
+        return False
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Q:
@@ -225,6 +197,6 @@ class Toolbar(QWidget):
             sys.exit()
 
 
-GUI(-1, 10, 10)
+GUI(None, 10, 10)
 
 

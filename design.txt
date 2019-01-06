@@ -111,3 +111,5 @@ We may also be able to do something like a pen tool, where they fill in the rect
 We also should have a slider for transparency that live updates
 
 We also should have a zoom slider + shortcut
+
+Use a different scene for drawing the prediciton rectangles
