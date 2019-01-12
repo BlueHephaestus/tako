@@ -52,6 +52,7 @@ class Canvas(QWidget):
 
         #Load and add the current pixmap
         self.pixmap = QPixmap('yang.png')
+        self.img_h, self.img_w = self.pixmap.height(), self.pixmap.width()
         self.scene.addPixmap(self.pixmap)
 
         #Modifiable attributes to determine what's being drawn
@@ -88,6 +89,20 @@ class Canvas(QWidget):
         else:
             self.scene.addItem(selection)
 
+    def relative_coordinates(view, event):
+        """
+        Gets the relative coordinates of the x and y 
+            position of this event, relative to the
+            given graphicsview scroll position(s).
+        """
+        x = event.x()
+        y = event.y()
+        scroll_x = view.horizontalScrollBar().value()
+        scroll_y = view.verticalScrollBar().value()
+
+        return (scroll_x + x, scroll_y + y)
+
+
 
 
     def eventFilter(self, source, event):
@@ -101,8 +116,9 @@ class Canvas(QWidget):
                 if (event.type() == QEvent.MouseButtonPress):
 
                     #Initialize selection rectangle with this
-                    self.select_start = QPoint(event.x(), event.y())
-                    self.select_rect = QRect(QPoint(event.x(), event.y()), QPoint(event.x(), event.y()))
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+                    self.select_start = QPoint(x,y)
+                    self.select_rect = QRect(QPoint(x,y), QPoint(x,y))
 
                     #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
                     #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
@@ -114,7 +130,8 @@ class Canvas(QWidget):
                 elif (event.type() == QEvent.MouseMove):
 
                     #Get new rectangle from our initial select_rect point to this point
-                    self.select_rect = get_rectangle_from_points(self.select_start, QPoint(event.x(), event.y()))
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+                    self.select_rect = get_rectangle_from_points(self.select_start, QPoint(x,y))
 
                     #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
                     #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
@@ -125,7 +142,8 @@ class Canvas(QWidget):
 
                 elif (event.type() == QEvent.MouseButtonRelease):
                     #Get new rectangle from our initial select_rect point to this point
-                    self.select_rect = get_rectangle_from_points(self.select_start, QPoint(event.x(), event.y()))
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+                    self.select_rect = get_rectangle_from_points(self.select_start, QPoint(x,y))
 
                     #Our rectangle selections can only be made up of small rectangles of size win_h x win_w
                     #   so that we lock on to areas in these step sizes to allow easier rectangle selection.
@@ -139,7 +157,8 @@ class Canvas(QWidget):
                 if (event.type() == QEvent.MouseButtonPress):
 
                     #Initialize selection polygon with this
-                    self.select_start = QPoint(event.x(), event.y())
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+                    self.select_start = QPoint(x,y)
                     self.select_polygon = QPolygonF([self.select_start])
 
                     #Render it
@@ -148,7 +167,8 @@ class Canvas(QWidget):
                 elif (event.type() == QEvent.MouseMove):
 
                     #Append this new point to the polygon selection
-                    self.select_polygon.append(QPoint(event.x(), event.y()))
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+                    self.select_polygon.append(QPoint(x,y))
 
                     #Render it
                     self.render_selection(self.select_polygon, polygon=True)
@@ -159,7 +179,7 @@ class Canvas(QWidget):
                         the area encompassed by it with rectangles of 
                         shape win_h x win_w and render these in its place.
                     """
-                    self.select_rect_group = approximate_polygon(self.select_polygon, self.h, self.w, self.win_h, self.win_w)
+                    self.select_rect_group = approximate_polygon(self.view, self.select_polygon, self.img_h, self.img_w, self.win_h, self.win_w)
 
                     #Render the approximation
                     self.render_selection(self.select_rect_group)
@@ -188,6 +208,23 @@ class Toolbar(QWidget):
 
         self.setWindowTitle("| Toolbar |")
         self.setGeometry(self.x,self.y,self.w,self.h)
+
+        select_tool_style = QStyleOptionButton()
+        select_tool_style.iconSize = QSize(50,50)
+
+        self.button = QPushButton('Test', self)
+        self.button.resize(50,50)
+        self.button.move(0,0)
+
+        self.button2 = QPushButton('Test', self)
+        self.button2.resize(50,50)
+        self.button2.move(60,0)
+        #self.button.initStyleOption(select_tool_style)
+        #self.button.setIconSize(QSize(50,50))
+
+        #self.button.clicked.connect(self.handleButton)
+        #layout = QVBoxLayout(self)
+        #layout.addWidget(self.button)
 
         self.show()
 

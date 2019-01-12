@@ -68,7 +68,7 @@ def get_outline_rect(rect, step_h, step_w):
 
     return QGraphicsRectItem(QRectF(QPointF(outline_x1, outline_y1), QPointF(outline_x2, outline_y2)))
 
-def approximate_polygon(polygon, img_h, img_w, step_h, step_w):
+def approximate_polygon(view, polygon, img_h, img_w, step_h, step_w):
     """
     We approximate the area encompassed by our QPolygonF
         with rectangles of shape step_h x step_w, and
@@ -83,12 +83,11 @@ def approximate_polygon(polygon, img_h, img_w, step_h, step_w):
 
     #Create group
     rects = QGraphicsItemGroup()
-
     #Iterate through centers
     for i in range(int(step_h//2), img_h, step_h):
         for j in range(int(step_w//2), img_w, step_w):
 
-            #Check if center i,j is inside polygon
+            #Check if center is inside polygon
             if polygon.containsPoint(QPointF(j, i), Qt.OddEvenFill):
 
                 #Get the rectangle at this position
@@ -100,6 +99,15 @@ def approximate_polygon(polygon, img_h, img_w, step_h, step_w):
     return rects
 
 
+def relative_coordinates(view, x, y):
+    """
+    Gets the x and y coordinates, relative 
+        to the given graphicsview scroll position(s).
+    """
+    scroll_x = view.horizontalScrollBar().value()
+    scroll_y = view.verticalScrollBar().value()
+
+    return (scroll_x + x, scroll_y + y)
 
 
 
