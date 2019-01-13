@@ -1,6 +1,7 @@
 import numpy as np
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 from config import * 
 
 def get_rectangle_from_points(p1, p2):
@@ -68,7 +69,7 @@ def get_outline_rect(rect, step_h, step_w):
 
     return QGraphicsRectItem(QRectF(QPointF(outline_x1, outline_y1), QPointF(outline_x2, outline_y2)))
 
-def approximate_polygon(view, polygon, img_h, img_w, step_h, step_w):
+def approximate_polygon(polygon, img_h, img_w, step_h, step_w):
     """
     We approximate the area encompassed by our QPolygonF
         with rectangles of shape step_h x step_w, and
@@ -110,6 +111,14 @@ def relative_coordinates(view, x, y):
     return (scroll_x + x, scroll_y + y)
 
 
+class ToolButton():
+    def __init__(self, parent, icon_fname, x, y, w=TOOLBAR_MIN_ITEM_WIDTH, h=TOOLBAR_MIN_ITEM_HEIGHT):
+        button = QPushButton('', parent)
+        self.w, self.h = w, h
+        button.resize(self.w, self.h)
+        button.move(x, y)
+        button.setIcon(QIcon(icon_fname))
+        button.setIconSize(QSize(w, h))
 
 
 

@@ -28,15 +28,10 @@ class Canvas(QWidget):
         self.win_h = win_h
         self.win_w = win_w
 
-        #Compute size of our canvas relative to screen dimensions
-        self.h = CANVAS_SCREEN_HEIGHT_PERCENTAGE*screen_h
-        self.w = CANVAS_SCREEN_WIDTH_PERCENTAGE*screen_w
-        self.y = CANVAS_SCREEN_Y_HEIGHT_PERCENTAGE*screen_h
-
-        #Width of toolbar + padding we gave our canvas on the y-axis
-        self.x = TOOLBAR_SCREEN_WIDTH_PERCENTAGE*screen_w + \
-                 TOOLBAR_SCREEN_Y_HEIGHT_PERCENTAGE*screen_h + \
-                 CANVAS_SCREEN_Y_HEIGHT_PERCENTAGE*screen_h 
+        self.h = CANVAS_HEIGHT
+        self.w = CANVAS_WIDTH
+        self.y = CANVAS_Y
+        self.x = CANVAS_X
 
         self.setWindowTitle("| Canvas |")
         self.setGeometry(self.x,self.y,self.w,self.h)
@@ -200,25 +195,58 @@ class Toolbar(QWidget):
         super(Toolbar, self).__init__()
         self.dataset = dataset
 
-        #Compute size of our toolbar relative to screen dimensions
-        self.h = TOOLBAR_SCREEN_HEIGHT_PERCENTAGE*screen_h
-        self.w = TOOLBAR_SCREEN_WIDTH_PERCENTAGE*screen_w
-        self.y = TOOLBAR_SCREEN_Y_HEIGHT_PERCENTAGE*screen_h 
-        self.x = self.y#Same padding as y
+        self.h = TOOLBAR_HEIGHT
+        self.w = TOOLBAR_WIDTH
+        self.y = TOOLBAR_Y
+        self.x = TOOLBAR_X
 
         self.setWindowTitle("| Toolbar |")
         self.setGeometry(self.x,self.y,self.w,self.h)
 
-        select_tool_style = QStyleOptionButton()
-        select_tool_style.iconSize = QSize(50,50)
+        #Add toolbar button items
 
-        self.button = QPushButton('Test', self)
-        self.button.resize(50,50)
-        self.button.move(0,0)
+        #Pointers for easy positioning of elements
+        item_x, item_y = TOOLBAR_PADDING, TOOLBAR_PADDING
 
-        self.button2 = QPushButton('Test', self)
+        #Rectangle Selection Tool
+        rect_select = ToolButton(self, RECT_SELECT_ICON_FNAME, item_x, item_y)
+        item_x += rect_select.w + TOOLBAR_PADDING
+
+        #Lasso Selection Tool
+        lasso_select = ToolButton(self, LASSO_SELECT_ICON_FNAME, item_x, item_y)
+        item_x += lasso_select.w + TOOLBAR_PADDING
+
+        #Pencil Tool
+        pencil = ToolButton(self, PENCIL_ICON_FNAME, item_x, item_y)
+        item_x += pencil.w + TOOLBAR_PADDING
+
+        #Eraser Tool
+        eraser = ToolButton(self, ERASER_ICON_FNAME, item_x, item_y)
+        item_x += eraser.w + TOOLBAR_PADDING
+
+        #Reset for next row
+        item_x = TOOLBAR_PADDING
+        item_y = rect_select.h + TOOLBAR_PADDING
+
+        #Add toolbar slider items
+        pencil_size = QSlider(Qt.Horizontal, self)
+        pencil_size.move(item_x, item_y)
+        pencil_size.resize(TOOLBAR_MAX_ITEM_WIDTH, TOOLBAR_MAX_ITEM_HEIGHT)
+
+
+
+        
+        
+
+
+        """
+        tsticon2 = QIcon("lasso_selection_tool_icon.png")
+        self.button2 = QPushButton(tsticon2, '', self)
         self.button2.resize(50,50)
-        self.button2.move(60,0)
+        self.button2.move(70,10)
+        self.button2.setIcon(tsticon2)
+        self.button2.setIconSize(QSize(40, 40))   
+        """
         #self.button.initStyleOption(select_tool_style)
         #self.button.setIconSize(QSize(50,50))
 
