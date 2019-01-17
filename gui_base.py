@@ -112,14 +112,40 @@ def relative_coordinates(view, x, y):
 
 
 class ToolButton():
-    def __init__(self, parent, icon_fname, x, y, w=TOOLBAR_MIN_ITEM_WIDTH, h=TOOLBAR_MIN_ITEM_HEIGHT):
-        button = QPushButton('', parent)
+    def __init__(self, parent, icon_fname, x, y, w=TOOLBAR_MIN_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
+        button = QPushButton('', parent)
         button.resize(self.w, self.h)
         button.move(x, y)
         button.setIcon(QIcon(icon_fname))
-        button.setIconSize(QSize(w, h))
+        button.setIconSize(QSize(self.w, self.h))
 
+class ToolSlider():
+    def __init__(self, parent, slider_name, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+        self.w, self.h = w, h
+
+        label = QLabel(slider_name, parent)
+        label.setAlignment(Qt.AlignCenter)
+        label.resize(self.w, TOOLBAR_MIN_ITEM_HEIGHT)
+        label.move(x, y)
+
+        slider = QSlider(Qt.Horizontal, parent)
+        slider.resize(self.w, self.h)
+        slider.move(x, y)
+
+class LabelButton():
+    def __init__(self, parent, label_i, label_name, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+        self.w, self.h = w, h
+        button = QPushButton(label_name, parent)
+        button.resize(self.w, self.h)
+        button.move(x, y)
+
+        """
+        The only way I could find to set a background color for a pyqt button,
+           despite how much I don't like using this method since it
+           requires we basically add CSS code.
+        """
+        button.setStyleSheet("background-color: {}".format(LABEL_COLORS[label_i]))
 
 
 

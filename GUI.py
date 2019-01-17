@@ -25,6 +25,7 @@ class Canvas(QWidget):
     def __init__(self, dataset, screen_h, screen_w, win_h, win_w):
         super(Canvas, self).__init__()
         self.dataset = dataset
+
         self.win_h = win_h
         self.win_w = win_w
 
@@ -194,6 +195,8 @@ class Toolbar(QWidget):
     def __init__(self, dataset, screen_h, screen_w, win_h, win_w):
         super(Toolbar, self).__init__()
         self.dataset = dataset
+        ####TEMPORARY
+        self.labels = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]
 
         self.h = TOOLBAR_HEIGHT
         self.w = TOOLBAR_WIDTH
@@ -226,13 +229,29 @@ class Toolbar(QWidget):
 
         #Reset for next row
         item_x = TOOLBAR_PADDING
-        item_y = rect_select.h + TOOLBAR_PADDING
+        item_y += rect_select.h + TOOLBAR_PADDING
 
-        #Add toolbar slider items
-        pencil_size = QSlider(Qt.Horizontal, self)
-        pencil_size.move(item_x, item_y)
-        pencil_size.resize(TOOLBAR_MAX_ITEM_WIDTH, TOOLBAR_MAX_ITEM_HEIGHT)
+        #Add initial toolbar slider items
+        pencil_size = ToolSlider(self, "Pencil Size", item_x, item_y)
+        item_y += pencil_size.h
 
+        eraser_size = ToolSlider(self, "Eraser Size", item_x, item_y)
+        item_y += eraser_size.h
+
+        #Add toolbar label buttons
+        for i, label in enumerate(self.labels):
+            label_button = LabelButton(self, i, label, item_x, item_y)
+            item_y += label_button.h
+        item_y += TOOLBAR_PADDING
+
+        #Add remaining toolbar slider items
+
+        ###TODO FIX HEIGHT PROBLEM WITH THIS LABEL
+        label_transparency = ToolSlider(self, "Label Transparency", item_x, item_y)
+        item_y += eraser_size.h + TOOLBAR_PADDING
+
+        zoom_factor = ToolSlider(self, "Zoom Factor", item_x, item_y)
+        item_y += zoom_factor.h + TOOLBAR_PADDING
 
 
         
@@ -259,9 +278,7 @@ class Toolbar(QWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Q:
             self.close()
-            sys.exit()
-
-
+            sys.exit() 
 GUI(None, 10, 10)
 
 

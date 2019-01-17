@@ -10,9 +10,10 @@ SCREEN_HEIGHT, SCREEN_WIDTH = SCREEN.height(), SCREEN.width()
 NPY_IMAGE_DIR = "data/images"
 NPY_CLASSIFICATION_DIR = "data/classifications"
 IMAGE_MAX_GB = 1.0#Maximum allowed size of a viewable image, in GB.
+EPSILON = 1e-7
 
-#TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .925
-TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .70
+TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .925
+#TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .70
 TOOLBAR_SCREEN_WIDTH_PERCENTAGE = .13
 TOOLBAR_SCREEN_Y_HEIGHT_PERCENTAGE = 0.0375
 
@@ -35,13 +36,10 @@ CANVAS_X = TOOLBAR_X + TOOLBAR_WIDTH + CANVAS_Y
 
 #Compute size of toolbar elements relative to the toolbar dimensions
 TOOLBAR_PADDING = TOOLBAR_WIDTH/25
-TOOLBAR_MIN_ITEM_HEIGHT = TOOLBAR_WIDTH/5
+TOOLBAR_MIN_ITEM_HEIGHT = TOOLBAR_WIDTH/25
 TOOLBAR_MAX_ITEM_HEIGHT = TOOLBAR_WIDTH/5 
 TOOLBAR_MIN_ITEM_WIDTH = TOOLBAR_WIDTH/5 
 TOOLBAR_MAX_ITEM_WIDTH = TOOLBAR_WIDTH - 2*TOOLBAR_PADDING
-
-
-EPSILON = 1e-7
 
 #Tools
 SELECTION_RECT_FILL_COLOR = QColor(255, 0, 0, 255)#TO BE UPDATED
@@ -53,3 +51,30 @@ PENCIL = 2
 PENCIL_ICON_FNAME = "assets/icons/pencil_tool.png"
 ERASER = 3
 ERASER_ICON_FNAME = "assets/icons/eraser_tool.png"
+
+#The list of 10 colors we go through to give to each label/classification
+LABEL_COLORS = [
+    "rgb(255, 0, 0)",
+    "rgb(255, 128, 0)",
+    "rgb(255, 255, 0)",
+    "rgb(128, 255, 0)",
+    "rgb(4, 180, 49)",
+    "rgb(0, 255, 255)",
+    "rgb(0, 0, 255)",
+    "rgb(128, 0, 255)",
+    "rgb(255, 0, 255)",
+    "rgb(255, 0, 128)",
+]
+
+#Anyway we can skip the dark red one? I don't like it
+
+
+
+
+
+
+
+
+
+
+
