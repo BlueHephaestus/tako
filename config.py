@@ -12,8 +12,8 @@ NPY_CLASSIFICATION_DIR = "data/classifications"
 IMAGE_MAX_GB = 1.0#Maximum allowed size of a viewable image, in GB.
 EPSILON = 1e-7
 
-TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .925
-#TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .70
+#TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .925
+TOOLBAR_SCREEN_HEIGHT_PERCENTAGE = .70
 TOOLBAR_SCREEN_WIDTH_PERCENTAGE = .13
 TOOLBAR_SCREEN_Y_HEIGHT_PERCENTAGE = 0.0375
 
@@ -36,7 +36,7 @@ CANVAS_X = TOOLBAR_X + TOOLBAR_WIDTH + CANVAS_Y
 
 #Compute size of toolbar elements relative to the toolbar dimensions
 TOOLBAR_PADDING = TOOLBAR_WIDTH/25
-TOOLBAR_MIN_ITEM_HEIGHT = TOOLBAR_WIDTH/25
+TOOLBAR_MIN_ITEM_HEIGHT = TOOLBAR_WIDTH/15#I'd make this /25 if it didn't clip the text
 TOOLBAR_MAX_ITEM_HEIGHT = TOOLBAR_WIDTH/5 
 TOOLBAR_MIN_ITEM_WIDTH = TOOLBAR_WIDTH/5 
 TOOLBAR_MAX_ITEM_WIDTH = TOOLBAR_WIDTH - 2*TOOLBAR_PADDING
@@ -66,7 +66,10 @@ LABEL_COLORS = [
     "rgb(255, 0, 128)",
 ]
 
-#Anyway we can skip the dark red one? I don't like it
+#Percentages each element (individualLy) takes up of the total width of this element
+#   in the toolbar.
+IMAGE_NAVIGATOR_BUTTON_WIDTH_PERC = .25
+IMAGE_NAVIGATOR_LABEL_WIDTH_PERC = .50
 
 
 

@@ -175,7 +175,7 @@ class Canvas(QWidget):
                         the area encompassed by it with rectangles of 
                         shape win_h x win_w and render these in its place.
                     """
-                    self.select_rect_group = approximate_polygon(self.view, self.select_polygon, self.img_h, self.img_w, self.win_h, self.win_w)
+                    self.select_rect_group = approximate_polygon(self.select_polygon, self.img_h, self.img_w, self.win_h, self.win_w)
 
                     #Render the approximation
                     self.render_selection(self.select_rect_group)
@@ -245,13 +245,22 @@ class Toolbar(QWidget):
         item_y += TOOLBAR_PADDING
 
         #Add remaining toolbar slider items
-
-        ###TODO FIX HEIGHT PROBLEM WITH THIS LABEL
         label_transparency = ToolSlider(self, "Label Transparency", item_x, item_y)
-        item_y += eraser_size.h + TOOLBAR_PADDING
+        item_y += label_transparency.h
 
         zoom_factor = ToolSlider(self, "Zoom Factor", item_x, item_y)
-        item_y += zoom_factor.h + TOOLBAR_PADDING
+        item_y += zoom_factor.h 
+        
+        #Add Image Navigation
+        image_nav = ImageNavigator(self, item_x, item_y)
+        item_y += image_nav.h 
+
+        #Add Stats Panel
+        stats_panel = StatsPanel(self, item_x, item_y)
+        item_y += stats_panel.h 
+
+        #Add Quit Button
+        quit_button = QuitButton(self, item_x, item_y)
 
 
         
@@ -279,6 +288,7 @@ class Toolbar(QWidget):
         if event.key() == Qt.Key_Q:
             self.close()
             sys.exit() 
-GUI(None, 10, 10)
+#GUI(None, 10, 10)
+GUI(None, 100, 50)
 
 

@@ -92,7 +92,7 @@ def approximate_polygon(polygon, img_h, img_w, step_h, step_w):
             if polygon.containsPoint(QPointF(j, i), Qt.OddEvenFill):
 
                 #Get the rectangle at this position
-                rect = QGraphicsRectItem(QRectF(QPointF(j-step_w//2, i-step_h//2), QPointF(j+step_w//2, i+step_w//2)))
+                rect = QGraphicsRectItem(QRectF(QPointF(j-step_w//2, i-step_h//2), QPointF(j+step_w//2, i+step_h//2)))
 
                 #Append to our item group
                 rects.addToGroup(rect)
@@ -112,6 +112,11 @@ def relative_coordinates(view, x, y):
 
 
 class ToolButton():
+    """
+    Creates a button corresponding to the given tool,
+        allowing the user to change their currently selected 
+        tool to this tool on pushing this button.
+    """
     def __init__(self, parent, icon_fname, x, y, w=TOOLBAR_MIN_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
         button = QPushButton('', parent)
@@ -121,6 +126,11 @@ class ToolButton():
         button.setIconSize(QSize(self.w, self.h))
 
 class ToolSlider():
+    """
+    Creates a slider with the given specifications,
+        to be linked to various parameters in the GUI
+        to be changed via movements of the slider.
+    """
     def __init__(self, parent, slider_name, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
 
@@ -134,6 +144,11 @@ class ToolSlider():
         slider.move(x, y)
 
 class LabelButton():
+    """
+    Creates a button corresponding to the given label,
+        allowing the user to change their currently selected 
+        label to this label on pushing this button.
+    """
     def __init__(self, parent, label_i, label_name, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
         button = QPushButton(label_name, parent)
@@ -147,7 +162,62 @@ class LabelButton():
         """
         button.setStyleSheet("background-color: {}".format(LABEL_COLORS[label_i]))
 
+class ImageNavigator():
+    """
+    Creates a display for the current image out of how many are remaining,
+        surrounded by left and right arrows to allow the user to
+        navigate to the previous and next image, respectively.
+    """
+    def __init__(self, parent, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+        self.w, self.h = w, h
 
+        self.button_w = self.w*IMAGE_NAVIGATOR_BUTTON_WIDTH_PERC
+        self.label_w = self.w*IMAGE_NAVIGATOR_LABEL_WIDTH_PERC
+
+        #Left / Previous Image Button
+        button = QPushButton('Prev', parent)
+        button.resize(self.w*IMAGE_NAVIGATOR_BUTTON_WIDTH_PERC, self.h)
+        button.move(x, y)
+
+        x += self.button_w
+
+        #Label
+        label = QLabel("Image 4/9", parent)
+        label.setAlignment(Qt.AlignCenter)
+        label.resize(self.w*IMAGE_NAVIGATOR_LABEL_WIDTH_PERC, self.h)
+        label.move(x, y)
+
+        x += self.label_w
+
+        #Right / Next Image Button
+        button = QPushButton('Next', parent)
+        button.resize(self.w*IMAGE_NAVIGATOR_BUTTON_WIDTH_PERC, self.h)
+        button.move(x, y)
+
+        x += self.button_w
+
+class StatsPanel():
+    """
+    Create a text panel to display several statistics about the ongoing session.
+    """
+    def __init__(self, parent, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+        self.w, self.h = w, h
+
+        #Label
+        label = QLabel("Classification Size: hxw pixels\nUsername: Blue", parent)
+        label.setAlignment(Qt.AlignCenter)
+        label.resize(self.w, self.h)
+        label.move(x, y)
+
+class QuitButton():
+    """
+    Creates a quit button, to end the session.
+    """
+    def __init__(self, parent, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+        self.w, self.h = w, h
+        button = QPushButton("Quit Session", parent)
+        button.resize(self.w, self.h)
+        button.move(x, y)
 
 
 
