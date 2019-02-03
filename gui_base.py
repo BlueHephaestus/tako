@@ -200,11 +200,11 @@ class StatsPanel():
     """
     Create a text panel to display several statistics about the ongoing session.
     """
-    def __init__(self, parent, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+    def __init__(self, parent, x, y, win_h, win_w, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
 
         #Label
-        label = QLabel("Classification Size: hxw pixels\nUsername: Blue", parent)
+        label = QLabel("Classification Size: {}x{} pixels\nUsername: N/A".format(win_h,win_w), parent)
         label.setAlignment(Qt.AlignCenter)
         label.resize(self.w, self.h)
         label.move(x, y)

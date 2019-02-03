@@ -72,8 +72,8 @@ def image_subsections(img):
     #We now know how many divisions are necessary / what division_factor
     #   needs to be, so we iterate through our subsections
     step = img.size//division_factor
-    for si in range(0, img.size-step, step)
-        for sj in range(0, img.size-step, step)
+    for si in range(0, img.size-step, step):
+        for sj in range(0, img.size-step, step):
             yield img[si:si+step, sj:sj+step]
 
 

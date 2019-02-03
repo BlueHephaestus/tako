@@ -1,7 +1,6 @@
 from base import *
 from scipy.misc import imread
 from config import NPY_IMAGE_DIR
-from ImageSubsections import ImageSubsections
 
 import numpy as np
 

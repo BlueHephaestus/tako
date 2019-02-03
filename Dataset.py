@@ -1,3 +1,7 @@
+from Images import *
+from Labels import * 
+from Classifications import *
+
 class Dataset():
 
     def __init__(self, input_dir, output_fname, label_fname, reset):

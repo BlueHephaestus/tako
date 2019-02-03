@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 
 from config import *
 from gui_base import *
+from Dataset import *
 
 
 class GUI():
@@ -17,7 +18,8 @@ class GUI():
 
         toolbar = Toolbar(dataset, screen_h, screen_w, win_h, win_w)
         canvas = Canvas(dataset, screen_h, screen_w, win_h, win_w)
-        app.exec_()
+        app.installEventFilter(canvas)
+        sys.exit(app.exec_())
 
 
 class Canvas(QWidget):
@@ -51,15 +53,14 @@ class Canvas(QWidget):
         self.img_h, self.img_w = self.pixmap.height(), self.pixmap.width()
         self.scene.addPixmap(self.pixmap)
 
-        #Modifiable attributes to determine what's being drawn
-        #self.selection = QGraphicsRectItem(QRectF(0,0,0,0))
-        #self.scene.addItem(self.selection)
-
         self.color = SELECTION_RECT_FILL_COLOR #For now it's just one color
 
+        self.pencil_rects = QGraphicsItemGroup()
+
         #Current tool being used to make selections in our image
-        #self.tool = RECT_SELECT
-        self.tool = LASSO_SELECT
+        self.tool = RECT_SELECT
+        #self.tool = LASSO_SELECT
+        #self.tool = PENCIL
 
         #Drawing Attributes for the Canvas
         self.painter = QPainter()
@@ -123,7 +124,7 @@ class Canvas(QWidget):
                     #Render it
                     self.render_selection(self.outline_rect)
 
-                elif (event.type() == QEvent.MouseMove):
+                elif (event.type() == QEvent.MouseMove and event.buttons() != Qt.NoButton):
 
                     #Get new rectangle from our initial select_rect point to this point
                     x,y = relative_coordinates(self.view, event.x(), event.y())
@@ -160,7 +161,7 @@ class Canvas(QWidget):
                     #Render it
                     self.render_selection(self.select_polygon, polygon=True)
 
-                elif (event.type() == QEvent.MouseMove):
+                elif (event.type() == QEvent.MouseMove and event.buttons() != Qt.NoButton):
 
                     #Append this new point to the polygon selection
                     x,y = relative_coordinates(self.view, event.x(), event.y())
@@ -180,6 +181,91 @@ class Canvas(QWidget):
                     #Render the approximation
                     self.render_selection(self.select_rect_group)
 
+            #Users can select around the given cursor wherever they drag the pencil, with this selection area depending on pencil_size
+            elif self.tool == PENCIL:
+
+                if (event.type() == QEvent.MouseMove):
+                    #This tool begins doing things immediately, in order to
+                    #   show the selection area around the cursor as they move it
+                    self.pencil_rects = QGraphicsItemGroup()
+                    r = 6
+                    rsqrd = r**2
+                    cx,cy = relative_coordinates(self.view, event.x(), event.y())
+                    #Round cx and cy to be the center of whatever window they're in atm
+                    cx = np.floor(cx/self.win_w)*self.win_w + self.win_w//2
+                    cy = np.floor(cy/self.win_h)*self.win_h + self.win_h//2
+
+                    #Iterate through outer boundary rectangle for our circle
+                    for x in range(-r,r+1):
+                        for y in range(-r,r+1):
+                            if x**2 + y**2 <= rsqrd:
+                                #Point at these cords should have a rect, get the coordinates for the rect
+                                #Convert the relative cords to the absolute ones
+                                px = cx + x*self.win_w
+                                py = cy + y*self.win_h
+                                rect = QGraphicsRectItem(QRectF(QPointF(px-self.win_w//2, py-self.win_h//2), QPointF(px+self.win_w//2, py+self.win_h//2)))
+                                self.pencil_rects.addToGroup(rect)
+                    self.render_selection(self.pencil_rects)
+
+
+                    """
+                    for x,rectx in enumerate(range(max(self.win_w//2, cx-r), min(self.img_w, cx+r), self.win_w):
+                        for y,recty in enumerate(range(max(0, cy-r), min(self.img_h, cy+r), self.win_h):
+                            if x**2 + y**2 <= rsqrd:
+                                pencil_rects.addToGroup(
+                    """
+
+                    """
+                    for radius in range(1,3):
+
+                        r2 = radius**2;
+
+                        addrect = lambda x,y: self.pencil_rects.addToGroup(get_outline_rect(QRect(QPoint(x,y),QPoint(x,y)), self.win_h, self.win_w))
+                        addrect(cx, cy + radius*self.win_h);
+                        addrect(cx, cy - radius*self.win_h);
+                        addrect(cx + radius*self.win_w, cy);
+                        addrect(cx - radius*self.win_w, cy);
+
+                        x = 1;
+                        y = int(np.sqrt(r2 - 1) + 0.5);
+                        while (x < y): 
+                            addrect(cx + x*self.win_w, cy + y*self.win_h);
+                            addrect(cx + x*self.win_w, cy - y*self.win_h);
+                            addrect(cx - x*self.win_w, cy + y*self.win_h);
+                            addrect(cx - x*self.win_w, cy - y*self.win_h);
+                            addrect(cx + y*self.win_h, cy + x*self.win_w);
+                            addrect(cx + y*self.win_h, cy - x*self.win_w);
+                            addrect(cx - y*self.win_h, cy + x*self.win_w);
+                            addrect(cx - y*self.win_h, cy - x*self.win_w);
+                            x += 1;
+                            y = int(np.sqrt(r2 - x**2) + 0.5);
+
+                        if (x == y) :
+                            addrect(cx + x*self.win_w, cy + y*self.win_h);
+                            addrect(cx + x*self.win_w, cy - y*self.win_h);
+                            addrect(cx - x*self.win_w, cy + y*self.win_h);
+                            addrect(cx - x*self.win_w, cy - y*self.win_h);
+
+                    self.render_selection(self.pencil_rects)
+                    self.pencil_rects = QGraphicsItemGroup()
+                    """
+                    
+                    
+
+                if (event.type() == QEvent.MouseButtonPress):
+
+                    print("Press")
+                    #Initialize selection polygon with this
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+
+
+                    x,y = relative_coordinates(self.view, event.x(), event.y())
+
+                elif (event.type() == QEvent.MouseButtonRelease):
+                    print("Release")
+                    
+
+
                     
                     
 
@@ -195,8 +281,9 @@ class Toolbar(QWidget):
     def __init__(self, dataset, screen_h, screen_w, win_h, win_w):
         super(Toolbar, self).__init__()
         self.dataset = dataset
-        ####TEMPORARY
-        self.labels = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]
+
+        self.win_h = win_h
+        self.win_w = win_w
 
         self.h = TOOLBAR_HEIGHT
         self.w = TOOLBAR_WIDTH
@@ -232,14 +319,14 @@ class Toolbar(QWidget):
         item_y += rect_select.h + TOOLBAR_PADDING
 
         #Add initial toolbar slider items
-        pencil_size = ToolSlider(self, "Pencil Size", item_x, item_y)
+        pencil_size = ToolSlider(self, "Pencil Size (N/A)", item_x, item_y)
         item_y += pencil_size.h
 
-        eraser_size = ToolSlider(self, "Eraser Size", item_x, item_y)
+        eraser_size = ToolSlider(self, "Eraser Size (N/A)", item_x, item_y)
         item_y += eraser_size.h
 
         #Add toolbar label buttons
-        for i, label in enumerate(self.labels):
+        for i, label in enumerate(self.dataset.labels):
             label_button = LabelButton(self, i, label, item_x, item_y)
             item_y += label_button.h
         item_y += TOOLBAR_PADDING
@@ -256,7 +343,7 @@ class Toolbar(QWidget):
         item_y += image_nav.h 
 
         #Add Stats Panel
-        stats_panel = StatsPanel(self, item_x, item_y)
+        stats_panel = StatsPanel(self, item_x, item_y, self.win_h, self.win_w)
         item_y += stats_panel.h 
 
         #Add Quit Button
@@ -288,7 +375,8 @@ class Toolbar(QWidget):
         if event.key() == Qt.Key_Q:
             self.close()
             sys.exit() 
-#GUI(None, 10, 10)
-GUI(None, 100, 50)
+
+GUI(Dataset("testinput/", "testoutput/", "testlabels.txt", False), 10, 10)
+#GUI(None, 100, 50)
 
 
