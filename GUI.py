@@ -16,8 +16,8 @@ class GUI():
         screen = QDesktopWidget().screenGeometry()
         screen_h, screen_w = screen.height(), screen.width()
 
-        toolbar = Toolbar(dataset, screen_h, screen_w, win_h, win_w)
         canvas = Canvas(dataset, screen_h, screen_w, win_h, win_w)
+        toolbar = Toolbar(dataset, canvas, screen_h, screen_w, win_h, win_w)
         app.installEventFilter(canvas)
         sys.exit(app.exec_())
 
@@ -57,10 +57,11 @@ class Canvas(QWidget):
 
         self.pencil_rects = QGraphicsItemGroup()
 
-        #Current tool being used to make selections in our image
+        #Current tool being used to make selections in our image (defaults to RECT_SELECT)
         self.tool = RECT_SELECT
-        #self.tool = LASSO_SELECT
-        #self.tool = PENCIL
+
+        #Current label to fill in those selections with (defaults to first)
+        self.label = 0
 
         #Drawing Attributes for the Canvas
         self.painter = QPainter()
@@ -278,9 +279,10 @@ class Canvas(QWidget):
 
 
 class Toolbar(QWidget):
-    def __init__(self, dataset, screen_h, screen_w, win_h, win_w):
+    def __init__(self, dataset, canvas, screen_h, screen_w, win_h, win_w):
         super(Toolbar, self).__init__()
         self.dataset = dataset
+        self.canvas = canvas
 
         self.win_h = win_h
         self.win_w = win_w
@@ -293,25 +295,33 @@ class Toolbar(QWidget):
         self.setWindowTitle("| Toolbar |")
         self.setGeometry(self.x,self.y,self.w,self.h)
 
+        #All buttons on the toolbar
+        self.tool_buttons = []
+        self.label_buttons = []
+
         #Add toolbar button items
 
         #Pointers for easy positioning of elements
         item_x, item_y = TOOLBAR_PADDING, TOOLBAR_PADDING
 
         #Rectangle Selection Tool
-        rect_select = ToolButton(self, RECT_SELECT_ICON_FNAME, item_x, item_y)
+        rect_select = ToolButton(self, RECT_SELECT_ICON_FNAME, RECT_SELECT, item_x, item_y)
+        self.tool_buttons.append(rect_select)
         item_x += rect_select.w + TOOLBAR_PADDING
 
         #Lasso Selection Tool
-        lasso_select = ToolButton(self, LASSO_SELECT_ICON_FNAME, item_x, item_y)
+        lasso_select = ToolButton(self, LASSO_SELECT_ICON_FNAME, LASSO_SELECT, item_x, item_y)
+        self.tool_buttons.append(lasso_select)
         item_x += lasso_select.w + TOOLBAR_PADDING
 
         #Pencil Tool
-        pencil = ToolButton(self, PENCIL_ICON_FNAME, item_x, item_y)
+        pencil = ToolButton(self, PENCIL_ICON_FNAME, PENCIL, item_x, item_y)
+        pencil.button.setEnabled(False)
         item_x += pencil.w + TOOLBAR_PADDING
 
         #Eraser Tool
-        eraser = ToolButton(self, ERASER_ICON_FNAME, item_x, item_y)
+        eraser = ToolButton(self, ERASER_ICON_FNAME, ERASER, item_x, item_y)
+        eraser.button.setEnabled(False)
         item_x += eraser.w + TOOLBAR_PADDING
 
         #Reset for next row
@@ -326,9 +336,11 @@ class Toolbar(QWidget):
         item_y += eraser_size.h
 
         #Add toolbar label buttons
-        for i, label in enumerate(self.dataset.labels):
-            label_button = LabelButton(self, i, label, item_x, item_y)
+        for label_id, label in enumerate(self.dataset.labels):
+            label_button = LabelButton(self, label_id, label, item_x, item_y)
+            self.label_buttons.append(label_button)
             item_y += label_button.h
+
         item_y += TOOLBAR_PADDING
 
         #Add remaining toolbar slider items

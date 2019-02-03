@@ -115,15 +115,49 @@ class ToolButton():
     """
     Creates a button corresponding to the given tool,
         allowing the user to change their currently selected 
-        tool to this tool on pushing this button.
+        tool to this tool id on pushing this button.
     """
-    def __init__(self, parent, icon_fname, x, y, w=TOOLBAR_MIN_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+    def __init__(self, parent, icon_fname, tool_id, x, y, w=TOOLBAR_MIN_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
-        button = QPushButton('', parent)
-        button.resize(self.w, self.h)
-        button.move(x, y)
-        button.setIcon(QIcon(icon_fname))
-        button.setIconSize(QSize(self.w, self.h))
+        self.tool_id = tool_id
+
+        #These callback methods are forced to be staticmethods with no args in PyQt,
+        #   so we define it inside the __init__ method
+        def on_click():
+            #Initialize our callback function for when this button is pressed
+
+            #Change parent active tool to this tool_id
+            parent.canvas.tool = tool_id
+
+            #Change other tool button states to not checked
+            #   (only way to change check state is with toggle())
+            for tool_button in parent.tool_buttons:
+                if tool_button.button.isChecked():
+                    tool_button.button.toggle()
+
+            #Change this button state to checked
+            if not self.button.isChecked():
+                self.button.toggle()
+
+        self.button = QPushButton('', parent)
+        self.button.resize(self.w, self.h)
+        self.button.move(x, y)
+        self.button.setIcon(QIcon(icon_fname))
+        self.button.setIconSize(QSize(self.w, self.h))
+        self.button.clicked.connect(on_click)
+        self.button.setCheckable(True)
+
+        #If we already have initialized the tool value to this tool_id, toggle this button.
+        if parent.canvas.tool == tool_id:
+            self.button.toggle()
+
+    #Add our supporting function for enabling/disabling the button this class wraps around
+    def setEnabled(self, condition):
+        self.button.setEnabled(condition)
+
+
+
+
 
 class ToolSlider():
     """
@@ -149,18 +183,43 @@ class LabelButton():
         allowing the user to change their currently selected 
         label to this label on pushing this button.
     """
-    def __init__(self, parent, label_i, label_name, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
+    def __init__(self, parent, label_id, label_name, x, y, w=TOOLBAR_MAX_ITEM_WIDTH, h=TOOLBAR_MAX_ITEM_HEIGHT):
         self.w, self.h = w, h
-        button = QPushButton(label_name, parent)
-        button.resize(self.w, self.h)
-        button.move(x, y)
+
+        #These callback methods are forced to be staticmethods with no args in PyQt,
+        #   so we define it inside the __init__ method
+        def on_click():
+            #Initialize our callback function for when this button is pressed
+
+            #Change parent active label to this label_id
+            parent.canvas.label = label_id
+
+            #Change other label button states to not checked
+            #   (only way to change check state is with toggle())
+            for label_button in parent.label_buttons:
+                if label_button.button.isChecked():
+                    label_button.button.toggle()
+
+            #Change this button state to checked
+            if not self.button.isChecked():
+                self.button.toggle()
+
+        self.button = QPushButton(label_name, parent)
+        self.button.resize(self.w, self.h)
+        self.button.move(x, y)
+        self.button.clicked.connect(on_click)
+        self.button.setCheckable(True)
+
+        #If we already have initialized the label value to this label_id, toggle this button.
+        if parent.canvas.label == label_id:
+            self.button.toggle()
 
         """
         The only way I could find to set a background color for a pyqt button,
            despite how much I don't like using this method since it
            requires we basically add CSS code.
         """
-        button.setStyleSheet("background-color: {}".format(LABEL_COLORS[label_i]))
+        self.button.setStyleSheet("background-color: {}".format(LABEL_COLORS[label_id]))
 
 class ImageNavigator():
     """
